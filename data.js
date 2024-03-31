@@ -2,6 +2,8 @@ const dvProducts = document.getElementById("dvProducts");
 const categoryList = document.getElementById("categoryList");
 const wishListDdl = document.getElementById("wishListDdl");
 const txtSearch = document.getElementById("txtSearch");
+const myCardContainer = document.getElementById("myCardContainer");
+const btnShowCard = document.getElementById("btnShowCard");
 
 const PRODUCTS = [
   {
@@ -78,6 +80,8 @@ const PRODUCTS = [
 
 let wishlist = [];
 
+let myCardData = [];
+
 const CARD_CATEGORIES = {
   all: "All Categories",
 };
@@ -135,11 +139,25 @@ const createCard = (product) => {
 
   const btnAddToCard = document.createElement("button");
   btnAddToCard.className = "btn btn-primary";
+  if (myCardData.some((x) => x.id == product.id))
+    btnAddToCard.classList.add("disabled");
   btnAddToCard.textContent = "Add to Cart";
   btnAddToCard.addEventListener("click", () => {
-    const quantity = document.getElementById(`txtQuantity${product.id}`).value;
-    if (quantity > 0)
-      console.log(`Name: ${product.name} \nQuantity: ${quantity}`);
+    let bool = myCardData.some((x) => x.id == product.id);
+    if (
+      !bool &&
+      document.getElementById(`txtQuantity${product.id}`).value > 0
+    ) {
+      btnAddToCard.classList.add("disabled");
+      myCardData.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        desc: product.desc,
+        quantity: document.getElementById(`txtQuantity${product.id}`).value,
+      });
+      bindMyCard();
+    }
   });
 
   const btnDecrease = document.createElement("button");
@@ -182,6 +200,84 @@ const createCard = (product) => {
   cardFooter.appendChild(btnIncrease);
 
   return col4;
+};
+
+const bindMyCard = () => {
+  myCardContainer.innerHTML = "";
+  myCardData.forEach((data) => {
+    let cardItem = createAddedCard(data);
+    myCardContainer.appendChild(cardItem);
+  });
+};
+
+const createAddedCard = (product) => {
+  const col12 = document.createElement("div");
+  col12.className = "col-12 mb-3";
+
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const cardHeader = document.createElement("div");
+  cardHeader.className =
+    "card-header d-flex justify-content-between align-items-center";
+
+  const h5 = document.createElement("h5");
+  h5.className = "card-title";
+  h5.textContent = product.name;
+
+  const cardBody = document.createElement("div");
+  cardBody.className = "card-body";
+  const desc = document.createElement("p");
+  desc.textContent = product.desc;
+  const priceSpan = document.createElement("span");
+  priceSpan.textContent = product.price;
+
+  const cardFooter = document.createElement("div");
+  cardFooter.className = "card-footer d-flex gap-3";
+
+  const col4Start = document.createElement("div");
+  col4Start.className = "col-4";
+
+  const col4End = document.createElement("div");
+  col4End.className =
+    "col-4 offset-4 d-flex justify-content-center align-items-center";
+
+  const quantitySpan = document.createElement("span");
+  quantitySpan.className = "bg-body border border-1 px-4 py-2 rounded-2";
+  quantitySpan.textContent = product.quantity;
+
+  const btnDeleteCard = document.createElement("button");
+  btnDeleteCard.className = "btn btn-outline-danger";
+  btnDeleteCard.textContent = "Delete";
+  btnDeleteCard.addEventListener("click", () => {
+    deleteItemFromMyCard(product.id);
+  });
+
+  col12.appendChild(card);
+
+  card.appendChild(cardHeader);
+  card.appendChild(cardBody);
+  card.appendChild(cardFooter);
+
+  cardHeader.appendChild(h5);
+
+  cardBody.appendChild(desc);
+  cardBody.appendChild(priceSpan);
+
+  cardFooter.appendChild(col4Start);
+  cardFooter.appendChild(col4End);
+
+  col4Start.appendChild(btnDeleteCard);
+  col4End.appendChild(quantitySpan);
+
+  return col12;
+};
+
+const deleteItemFromMyCard = (prId) => {
+  myCardData = myCardData.filter((x) => x.id != prId);
+  bindMyCard();
+
+  bindCards(PRODUCTS, currentCategory);
 };
 
 const addToWishlist = (productName) => {
